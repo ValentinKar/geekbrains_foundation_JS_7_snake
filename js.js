@@ -1,6 +1,7 @@
 "use strict";
 
 /**
+ * 1. Выводить счёт в режиме реального времени.
  * Объект змейки.
  * @property {{x: int, y: int}[]} body Массив с точками тела змейки.
  * @property {string} lastStepDirection Направление, куда сходила змейка прошлый раз.
@@ -129,7 +130,7 @@ const renderer = {
    * @see {@link https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames|Object.getOwnPropertyNames()}
    * @see {@link https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach|Array.prototype.forEach()}
    */
-  render(snakePointsArray, foodPoint) {
+  render(snakePointsArray, foodPoint, numOfCount) {
     // Чистим карту от предыдущего рендера, всем ячейкам оставляем только класс cell.
     for (const key of Object.getOwnPropertyNames(this.cells)) {
       this.cells[key].className = 'cell';
@@ -143,6 +144,11 @@ const renderer = {
 
     // Отображаем еду.
     this.cells[`x${foodPoint.x}_y${foodPoint.y}`].classList.add('food');
+
+    // Выбибираем span с классом .numberOfCount куда будет записан счет игры
+    const count = document.querySelector('.numberOfCount');
+    // Отображаем счет на странице.
+    count.innerHTML = numOfCount;
   },
 };
 
@@ -276,6 +282,7 @@ const settings = {
  * @property {food} food Объект еды.
  * @property {status} status Статус игры.
  * @property {int} tickInterval Номер интервала игры.
+ * @property {int} count Счет игры.
  */
 const game = {
   settings,
@@ -284,6 +291,7 @@ const game = {
   food,
   status,
   tickInterval: null,
+  count: null,
 
   /**
    * Инициализация игры.
@@ -314,6 +322,8 @@ const game = {
     this.snake.init(this.getStartSnakePoint(), 'up');
     // Ставим еду на карту в случайную пустую ячейку.
     this.food.setFoodCoordinates(this.getRandomCoordinates());
+    // Устанавливаем начальный счет равный 0.
+    this.count = 0;
     // Отображаем все что нужно для игры.
     this.render();
   },
@@ -367,6 +377,8 @@ const game = {
     if (this.food.isFoodPoint(this.snake.getNextStepHeadPoint())) {
       // Прибавляем к змейке ячейку.
       this.snake.incrementBody();
+      // Увеличиваем счет на единицу.
+      ++this.count;
       // Ставим еду в свободную ячейку.
       this.food.setFoodCoordinates(this.getRandomCoordinates());
       // Если выиграли, завершаем игру.
@@ -422,7 +434,7 @@ const game = {
    * Отображает все для игры, карту, еду и змейку.
    */
   render() {
-    this.renderer.render(this.snake.body, this.food.getFoodCoordinates());
+    this.renderer.render(this.snake.body, this.food.getFoodCoordinates(), this.count);
   },
 
   /**
