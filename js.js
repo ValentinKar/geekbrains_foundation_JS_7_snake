@@ -2,6 +2,8 @@
 
 /**
  * 1. Выводить счёт в режиме реального времени.
+ * 2*. Убрать границы поля. Т.е. при пересечении границы поля змейка появляется 
+ * с противоположной стороны.
  * Объект змейки.
  * @property {{x: int, y: int}[]} body Массив с точками тела змейки.
  * @property {string} lastStepDirection Направление, куда сходила змейка прошлый раз.
@@ -129,11 +131,32 @@ const renderer = {
    * @param {{x: int, y: int}} foodPoint Точка еды.
    * @see {@link https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Object/getOwnPropertyNames|Object.getOwnPropertyNames()}
    * @see {@link https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach|Array.prototype.forEach()}
+   * @param {int} rowsCount Количество строк в карте.
+   * @param {int} colsCount Количество колонок в карте.
    */
-  render(snakePointsArray, foodPoint, numOfCount) {
+  render(snakePointsArray, foodPoint, numOfCount, rowsCount, colsCount) {
     // Чистим карту от предыдущего рендера, всем ячейкам оставляем только класс cell.
     for (const key of Object.getOwnPropertyNames(this.cells)) {
       this.cells[key].className = 'cell';
+    }
+
+    // Убраются границы поля. Т.е. при пересечении границы поля 
+    // змейка появляется с противоположной стороны.
+    switch (snakePointsArray[0].y) {
+      case colsCount:
+        snakePointsArray[0].y = 0;
+        break;
+      case -1:
+        snakePointsArray[0].y = colsCount - 1;
+        break;
+    }
+    switch (snakePointsArray[0].x) {
+      case rowsCount:
+        snakePointsArray[0].x = 0;
+        break;
+      case -1:
+        snakePointsArray[0].x = rowsCount - 1;
+        break;
     }
 
     // Отображаем змейку.
@@ -434,7 +457,9 @@ const game = {
    * Отображает все для игры, карту, еду и змейку.
    */
   render() {
-    this.renderer.render(this.snake.body, this.food.getFoodCoordinates(), this.count);
+    this.renderer.render(this.snake.body, 
+      this.food.getFoodCoordinates(), this.count, 
+      this.settings.rowsCount, this.settings.colsCount);
   },
 
   /**
@@ -549,12 +574,8 @@ const game = {
   canSnakeMakeStep() {
     // Получаем следующую точку головы змейки в соответствии с текущим направлением.
     const nextHeadPoint = this.snake.getNextStepHeadPoint();
-    // Змейка может сделать шаг если следующая точка не на теле змейки и точка внутри игрового поля.
-    return !this.snake.isBodyPoint(nextHeadPoint) &&
-      nextHeadPoint.x < this.settings.colsCount &&
-      nextHeadPoint.y < this.settings.rowsCount &&
-      nextHeadPoint.x >= 0 &&
-      nextHeadPoint.y >= 0;
+    // Змейка может сделать шаг если следующая точка не на теле змейки.
+    return !this.snake.isBodyPoint(nextHeadPoint); 
   },
 };
 
